@@ -10,10 +10,12 @@ import org.apache.maven.project.MavenProject;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.traverse.GraphIterator;
-import org.jgrapht.traverse.TopologicalOrderIterator;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 @Mojo(name = "generate", aggregator = true, defaultPhase = LifecyclePhase.INITIALIZE)
 public class GenerateMojo extends AbstractMojo {
@@ -39,31 +41,56 @@ public class GenerateMojo extends AbstractMojo {
             graph.addEdge(project.getParent(), project);
         }
 
-        getLog().info(graph.toString());
+        ProjectInfo projectInfo = generateRootProjectInfo(graph);
 
-        GraphIterator<MavenProject, DefaultEdge> iterator = new TopologicalOrderIterator<MavenProject, DefaultEdge>(graph);
-
-        ProjectInfo parentProject = null;
-        MavenProject parentMavenProject = null;
-        while(iterator.hasNext()) {
-            MavenProject project = iterator.next();
-
-            if (parentProject == null) {
-                parentProject = new ProjectInfo();
-                parentProject.setName(project.getArtifactId());
-                parentMavenProject = project;
-                continue;
-            } else if (parentMavenProject == project.getParent()) {
-                ProjectInfo projectInfo = new ProjectInfo();
-                projectInfo.setName(project.getName());
-                parentProject.getSubProjects().put(project.getName(), projectInfo);
-            } else {
-                parentMavenProject = project.getParent();
-                
-            }
-
+        if (showParents) {
+            projectInfo = processParents(mavenProject, projectInfo);
         }
 
+        getLog().info(projectInfo.toString());
+
+    }
+
+    private ProjectInfo generateRootProjectInfo(Graph<MavenProject, DefaultEdge> graph) {
+        Queue<MavenProject> projectQueue = new LinkedList<MavenProject>();
+        projectQueue.add(mavenProject);
+
+        ProjectInfo masterProjectInfo = new ProjectInfo();
+        masterProjectInfo.setName(mavenProject.getName());
+        Map<MavenProject, ProjectInfo> mavenProjectProjectInfoMap = new HashMap<MavenProject, ProjectInfo>();
+        mavenProjectProjectInfoMap.put(mavenProject, masterProjectInfo);
+
+        ProjectInfo currentProjectInfo = null;
+        while(!projectQueue.isEmpty()) {
+            MavenProject elem = projectQueue.poll();
+            currentProjectInfo = mavenProjectProjectInfoMap.get(elem);
+            for(DefaultEdge edge : graph.outgoingEdgesOf(elem)) {
+                MavenProject subElem = graph.getEdgeTarget(edge);
+                projectQueue.add(subElem);
+
+                ProjectInfo subProjectInfo = new ProjectInfo();
+                subProjectInfo.setName(subElem.getName());
+
+                currentProjectInfo.getSubProjects().put(subProjectInfo.getName(), subProjectInfo);
+                mavenProjectProjectInfoMap.put(subElem, subProjectInfo);
+            }
+        }
+
+        return masterProjectInfo;
+    }
+
+    private ProjectInfo processParents(MavenProject mavenProject, ProjectInfo projectInfo) {
+        MavenProject currentMavenProject = mavenProject.getParent();
+        while (currentMavenProject != null) {
+            ProjectInfo parentProjectInfo = new ProjectInfo();
+            parentProjectInfo.setName(currentMavenProject.getName());
+            parentProjectInfo.getSubProjects().put(projectInfo.getName(), projectInfo);
+
+            projectInfo = parentProjectInfo;
+            currentMavenProject = currentMavenProject.getParent();
+        }
+
+        return projectInfo;
     }
 
 }

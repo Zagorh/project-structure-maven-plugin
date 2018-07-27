@@ -27,7 +27,7 @@ public class ProjectInfo {
     public String toString() {
         return "ProjectInfo{" +
                 "name='" + name + '\'' +
-                ", subProjects=" + subProjects.values() +
+                ", subProjects=" + (subProjects != null ? subProjects.values() : null) +
                 '}';
     }
 }
