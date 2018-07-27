@@ -13,6 +13,10 @@ import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,14 +26,23 @@ import java.util.Queue;
 @Mojo(name = "generate", aggregator = true, defaultPhase = LifecyclePhase.INITIALIZE)
 public class GenerateMojo extends AbstractMojo {
 
+    @Parameter(defaultValue = "${project.build.directory}", required = true, property = "outputDirectory")
+    private File buildDirectory;
+
+    @Parameter(defaultValue = "project-structure", required = true, property = "outputFilename")
+    private String filename;
+
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject mavenProject;
 
-    @Parameter(defaultValue = "true", required = true, property = "showParents")
+    @Parameter(defaultValue = "true", required = true, property = "projectstructure.showParents")
     private boolean showParents;
 
-    @Parameter(defaultValue = "false", required = true, property = "showParentsStructure")
+    @Parameter(defaultValue = "false", required = true, property = "projectstructure.showParentsStructure")
     private boolean showParentsStructure;
+
+    @Parameter(defaultValue = "false", required = true, property = "projectstructure.verbose")
+    private boolean verbose;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         Graph<MavenProject, DefaultEdge> graph = new DefaultDirectedGraph<MavenProject, DefaultEdge>(DefaultEdge.class);
@@ -51,7 +64,39 @@ public class GenerateMojo extends AbstractMojo {
 
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.setPrettyPrinting().create();
-        getLog().info(gson.toJson(projectInfo));
+
+        String jsonString = gson.toJson(projectInfo);
+
+        if (verbose) {
+            getLog().info(jsonString);
+        }
+
+        File jsonFile = new File(buildDirectory, filename + ".json");
+
+        BufferedOutputStream bs = null;
+        FileOutputStream fs = null;
+        try {
+            fs = new FileOutputStream(jsonFile);
+            bs = new BufferedOutputStream(fs);
+
+            bs.write(jsonString.getBytes());
+            bs.flush();
+
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        } finally {
+            try {
+                if (fs != null) {
+                    fs.close();
+                }
+
+                if (bs != null) {
+                    bs.close();
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getMessage(), e);
+            }
+        }
 
     }
 
@@ -66,10 +111,10 @@ public class GenerateMojo extends AbstractMojo {
         mavenProjectProjectInfoMap.put(mavenProject, masterProjectInfo);
 
         ProjectInfo currentProjectInfo = null;
-        while(!projectQueue.isEmpty()) {
+        while (!projectQueue.isEmpty()) {
             MavenProject elem = projectQueue.poll();
             currentProjectInfo = mavenProjectProjectInfoMap.get(elem);
-            for(DefaultEdge edge : graph.outgoingEdgesOf(elem)) {
+            for (DefaultEdge edge : graph.outgoingEdgesOf(elem)) {
                 MavenProject subElem = graph.getEdgeTarget(edge);
                 projectQueue.add(subElem);
 
