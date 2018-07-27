@@ -60,7 +60,8 @@ public class GenerateMojo extends AbstractMojo {
         projectQueue.add(mavenProject);
 
         ProjectInfo masterProjectInfo = new ProjectInfo();
-        masterProjectInfo.setName(mavenProject.getName());
+        setProjectInfoFromMavenProject(mavenProject, masterProjectInfo);
+
         Map<MavenProject, ProjectInfo> mavenProjectProjectInfoMap = new HashMap<MavenProject, ProjectInfo>();
         mavenProjectProjectInfoMap.put(mavenProject, masterProjectInfo);
 
@@ -73,7 +74,7 @@ public class GenerateMojo extends AbstractMojo {
                 projectQueue.add(subElem);
 
                 ProjectInfo subProjectInfo = new ProjectInfo();
-                subProjectInfo.setName(subElem.getName());
+                setProjectInfoFromMavenProject(subElem, subProjectInfo);
 
                 currentProjectInfo.getSubProjects().add(subProjectInfo);
                 mavenProjectProjectInfoMap.put(subElem, subProjectInfo);
@@ -95,6 +96,14 @@ public class GenerateMojo extends AbstractMojo {
         }
 
         return projectInfo;
+    }
+
+    private void setProjectInfoFromMavenProject(MavenProject mavenProject, ProjectInfo projectInfo) {
+        projectInfo.setName(mavenProject.getName());
+        projectInfo.setGroupId(mavenProject.getGroupId());
+        projectInfo.setArtifactId(mavenProject.getArtifactId());
+        projectInfo.setVersion(mavenProject.getVersion());
+        projectInfo.setPackaging(mavenProject.getPackaging());
     }
 
 }
