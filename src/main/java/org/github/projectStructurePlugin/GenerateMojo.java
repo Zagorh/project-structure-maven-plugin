@@ -38,9 +38,6 @@ public class GenerateMojo extends AbstractMojo {
     @Parameter(defaultValue = "true", required = true, property = "projectstructure.showParents")
     private boolean showParents;
 
-    @Parameter(defaultValue = "false", required = true, property = "projectstructure.showParentsStructure")
-    private boolean showParentsStructure;
-
     @Parameter(defaultValue = "false", required = true, property = "projectstructure.verbose")
     private boolean verbose;
 
