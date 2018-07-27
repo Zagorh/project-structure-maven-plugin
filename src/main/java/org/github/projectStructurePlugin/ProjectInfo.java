@@ -1,12 +1,12 @@
 package org.github.projectStructurePlugin;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProjectInfo {
 
     private String name;
-    Map<String, ProjectInfo> subProjects;
+    List<ProjectInfo> subProjects;
 
     public String getName() {
         return name;
@@ -16,18 +16,22 @@ public class ProjectInfo {
         this.name = name;
     }
 
-    public Map<String, ProjectInfo> getSubProjects() {
+    public List<ProjectInfo> getSubProjects() {
         if (subProjects == null) {
-            subProjects = new HashMap<String, ProjectInfo>();
+            subProjects = new ArrayList<ProjectInfo>();
         }
         return subProjects;
+    }
+
+    public void setSubProjects(List<ProjectInfo> subProjects) {
+        this.subProjects = subProjects;
     }
 
     @Override
     public String toString() {
         return "ProjectInfo{" +
                 "name='" + name + '\'' +
-                ", subProjects=" + (subProjects != null ? subProjects.values() : null) +
+                ", subProjects=" + subProjects +
                 '}';
     }
 }

@@ -71,7 +71,7 @@ public class GenerateMojo extends AbstractMojo {
                 ProjectInfo subProjectInfo = new ProjectInfo();
                 subProjectInfo.setName(subElem.getName());
 
-                currentProjectInfo.getSubProjects().put(subProjectInfo.getName(), subProjectInfo);
+                currentProjectInfo.getSubProjects().add(subProjectInfo);
                 mavenProjectProjectInfoMap.put(subElem, subProjectInfo);
             }
         }
@@ -84,7 +84,7 @@ public class GenerateMojo extends AbstractMojo {
         while (currentMavenProject != null) {
             ProjectInfo parentProjectInfo = new ProjectInfo();
             parentProjectInfo.setName(currentMavenProject.getName());
-            parentProjectInfo.getSubProjects().put(projectInfo.getName(), projectInfo);
+            parentProjectInfo.getSubProjects().add(projectInfo);
 
             projectInfo = parentProjectInfo;
             currentMavenProject = currentMavenProject.getParent();
