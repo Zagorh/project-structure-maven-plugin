@@ -1,5 +1,7 @@
 package org.github.projectStructurePlugin;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -47,7 +49,9 @@ public class GenerateMojo extends AbstractMojo {
             projectInfo = processParents(mavenProject, projectInfo);
         }
 
-        getLog().info(projectInfo.toString());
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.setPrettyPrinting().create();
+        getLog().info(gson.toJson(projectInfo));
 
     }
 
