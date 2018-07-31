@@ -26,10 +26,10 @@ import java.util.Queue;
 @Mojo(name = "generate", aggregator = true, defaultPhase = LifecyclePhase.INITIALIZE)
 public class GenerateMojo extends AbstractMojo {
 
-    @Parameter(defaultValue = "${project.build.directory}", required = true, property = "outputDirectory")
+    @Parameter(defaultValue = "${project.build.directory}", required = true, property = "projectstructure.outputDirectory")
     private File buildDirectory;
 
-    @Parameter(defaultValue = "project-structure", required = true, property = "outputFilename")
+    @Parameter(defaultValue = "project-structure.json", required = true, property = "projectstructure.outputFilename")
     private String filename;
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -68,11 +68,18 @@ public class GenerateMojo extends AbstractMojo {
             getLog().info(jsonString);
         }
 
-        File jsonFile = new File(buildDirectory, filename + ".json");
+        File jsonFile = new File(buildDirectory, filename);
+        if (jsonFile.exists()) {
+            jsonFile.delete();
+        }
 
         BufferedOutputStream bs = null;
         FileOutputStream fs = null;
         try {
+            if (jsonFile.getParentFile() != null) {
+                jsonFile.getParentFile().mkdirs();
+            }
+            jsonFile.createNewFile();
             fs = new FileOutputStream(jsonFile);
             bs = new BufferedOutputStream(fs);
 
